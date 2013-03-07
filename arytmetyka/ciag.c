@@ -6,8 +6,19 @@ void work(int steps){
     float tmpf;
     double xd = 0.01;
     double tmpd;
+    printf("\n\t:double:\t:float:\n\n");
     while(steps--){
+        tmpf=1-xf;
+        tmpf*=xf;
+        tmpf*=3.0f;
+        xf+=tmpf;
 
+        tmpd=1-xd;
+        tmpd*=xd;
+        tmpd*=3.0;
+        xd+=tmpd;
+
+        printf("\t%f\t%lf\n",xf,xd);
     }
 }
 
@@ -24,6 +35,6 @@ int main(int argc, char *argv[]){
             return 2;
         }
     }
-
+    work(steps);
     return 0;
 }
