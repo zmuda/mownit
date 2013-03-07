@@ -1,0 +1,5 @@
+./ciag 40
+gnuplot 
+plot 'out.tmp' using 1:2 with linespoints, 'out.tmp' using 3:4 with linespoints
+pause -1
+rm out.tmp
