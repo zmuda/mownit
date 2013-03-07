@@ -1,5 +1,4 @@
 #!/bin/sh
-echo $1
-./ciag 40
+./ciag $1
 gnuplot plot.p
 rm out.tmp
