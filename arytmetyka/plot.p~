@@ -1,2 +1,0 @@
-plot 'out.tmp' using 1:2 with linespoints, 'out.tmp' using 3:2 with linespoints
-pause -1
