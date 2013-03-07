@@ -1,7 +1,8 @@
 #!/bin/sh
 gcc mrs.c -o mrs -lgslcblas -lgsl -lm
-# cu' - u" = f(x) - rownanie dyfuzji-konwekcji
+# cu' - u" = x^2 - rownanie dyfuzji-konwekcji
 # xE(0,1); u(0)=u(1)=0;
 # $1 = liczba podzialow; $2 = stala konwekcji c
 ./mrs $1 $2
-echo TODOgnuplot
+gnuplot mrs.p
+rm out_0.tmp
