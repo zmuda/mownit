@@ -26,6 +26,9 @@ void gen(int steps){
         x+= rand()%tmp+1;
         xa[stepsBak-steps-1]=x;
         ya[stepsBak-steps-1]=y;
+        xa[stepsBak-steps-1]=x;
+        ya[stepsBak-steps-1]=x*x*x+x*x+x+1;
+
         //printf("%f\t%f\n",xa[stepsBak-steps-1],ya[stepsBak-steps-1]);
     }
 }
@@ -45,12 +48,104 @@ void gsl_polynomial(){
     free(ya);
 }
 //////////////////////////////////////////////////////////////////////////////////
-/*
-stuct polynomial {
+struct polynomialStruct {
     int n;
+    int type;
     double *a;
 };
-*/
+typedef struct polynomialStruct polynomial;
+
+polynomial* polynomial_alloc(int mode, int rootsNum){
+    //printf("xxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+    polynomial* ret = (polynomial*)malloc( sizeof(polynomial) );
+    ret->a=malloc(rootsNum*sizeof(double));
+    ret->n=rootsNum;
+    ret->type=mode;
+    int i=rootsNum;
+    //ret->a[0]=0.0;
+    //ret->a[--i]=0.0;
+    while(i--){
+        (ret->a)[i]=0.0;
+        //printf("%i\n",i);
+    }
+    return ret;
+    return 0;
+}
+int aisaplusb(polynomial* a,polynomial* b){
+    if(a->n==b->n){
+        int i=a->n;
+        while(i--){
+            a->a[i]+=b->a[i];
+        }
+        return 0;
+    } else return 1;
+}
+polynomial* polycopy(polynomial* pol){
+    //printf("\n\n%i\n\n",sizeof(pol));
+    polynomial* ret = polynomial_alloc(pol->type,pol->n);
+    int i=pol->n;
+    while(i--){
+        ret->a[i]=pol->a[i];
+    }
+    //memcpy(ret->a,pol->a,pol->n * sizeof(double) );
+    return ret;
+    //return 0;
+}
+int aisadotmonomial(polynomial* a, double x){
+    int i= a->n;
+    if(a->a[i-1]!=0.0){
+        return 1;
+    }
+    polynomial* copy = polycopy(a);
+    while(i-->1){
+        a->a[i] = x* copy->a[i];
+        a->a[i] += copy->a[i-1];
+    }
+    a->a[0]=x*copy->a[0];
+}
+int aisadotscalar(polynomial* a, double x){
+    int i= a->n;
+    while(i--){
+        a->a[i] *=x;
+    }
+    return 0;
+}
+
+
+void Lagrange(polynomial* pol, double* xa, double* ya, int num){
+    int roots = pol->n;
+    int i = roots;
+    int j;
+    double under;
+    polynomial* tmp;
+    while(i--){
+        tmp=polynomial_alloc(-1,pol->n);
+        tmp->a[0]=1;
+        under=ya[i];
+        j=roots;
+        while(j--){
+            if(j!=i){
+                under/=( xa[i]-xa[j] );
+                aisadotmonomial(tmp,xa[j]);
+            }
+        }
+        aisadotscalar(tmp,under);
+        aisaplusb(pol,tmp);
+    }
+}
+void Newton(polynomial* pol, double* xa, double* ya, int num){
+}
+
+void polynomial_init(polynomial* pol, double* xa, double* ya, int num){
+    //if(pol->type==0){
+    Lagrange(pol,xa,ya,num);
+    //} else {
+    //    Newton(pol,xa,ya,num);
+    //}
+}
+
+
+
 //////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char *argv[]){
     int steps = -1;
@@ -64,7 +159,24 @@ int main(int argc, char *argv[]){
             return 2;
         }
     }
+    //printf("FUUUUUUUUUUUUUUUUU");
     gen(steps);
-    gsl_polynomial();
+    //gsl_polynomial();
+    polynomial* tmp=polynomial_alloc(-1,stepsBak);
+    polynomial_init(tmp,xa,ya,stepsBak);
+
+    //tmp->a[0]=1;
+    //aisadotscalar(tmp,5);
+
+    int i= stepsBak;
+    while(i--){
+        printf("%f\n",tmp->a[i]);
+    }
+
+    i= stepsBak;
+    while(i--){
+        printf("%f\t%f\n",xa[i],ya[i]);
+    }
+
     return 0;
 }
