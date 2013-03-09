@@ -5,54 +5,53 @@
 #include <gsl/gsl_spline.h>
 
 
-void work(int steps){
-    const int WIDTH = 800;
-    const int HEIGHT = 600;
-
-    FILE* out = fopen("out.tmp","w");
-    srand(time(NULL));
-    int x,y;
-    double spare = WIDTH;
-    x=0;
-    while(steps--){
-        spare = WIDTH-x;
-        y= rand()%(HEIGHT);
-        int tmp = (spare/steps);
-        if(tmp<2)tmp=2;
-        x+= rand()%tmp;
-        fprintf(out,"%i\t%i\n",x,y);
-    }
-    //fprintf(out,"%f\t%i\t%lf\n",xf,i,xd);
-    fclose(out);
-}
-
+const int WIDTH = 800;
+const int HEIGHT = 600;
+double *ya,*xa;
+int stepsBak;
 
 void gen(int steps){
-    const int WIDTH = 800;
-    const int HEIGHT = 600;
-
-    FILE* out = fopen("out.tmp","w");
     srand(time(NULL));
     int x,y;
     double spare = WIDTH;
     x=0;
-    double* xa = (double*) malloc(steps*sizeof(double));
-    double* ya = (double*) malloc(steps*sizeof(double));
-    int stepsBak=steps;
+    xa = (double*) malloc(steps*sizeof(double));
+    ya = (double*) malloc(steps*sizeof(double));
+    stepsBak=steps;
     while(steps--){
         spare = WIDTH-x;
         y= rand()%(HEIGHT);
         int tmp = (spare/steps)+1;
-        if(tmp<2)tmp=2;
-        x+= rand()%tmp;
+        if(tmp<2)tmp=spare;
+        x+= rand()%tmp+1;
         xa[stepsBak-steps-1]=x;
         ya[stepsBak-steps-1]=y;
-        printf("%f\t%f\n",xa[stepsBak-steps-1],ya[stepsBak-steps-1]);
+        //printf("%f\t%f\n",xa[stepsBak-steps-1],ya[stepsBak-steps-1]);
     }
 }
+void gsl_polynomial(){
+    gsl_interp_accel *acc = gsl_interp_accel_alloc();
+    gsl_interp* inter = gsl_interp_alloc(gsl_interp_polynomial, stepsBak);
+    gsl_interp_init (inter,xa,ya, stepsBak);
 
-
-
+    double xi, yi;
+    for (xi = xa[0]; xi < xa[stepsBak-1]; xi += 1.0 ) {
+        yi = gsl_interp_eval(inter, xa, ya, xi, acc);
+        printf("%lf %lf\n", xi, yi);
+    }
+    gsl_interp_free(inter);
+    gsl_interp_accel_free(acc);
+    free(xa);
+    free(ya);
+}
+//////////////////////////////////////////////////////////////////////////////////
+/*
+stuct polynomial {
+    int n;
+    double *a;
+};
+*/
+//////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char *argv[]){
     int steps = -1;
     if(argc<2){
@@ -66,5 +65,6 @@ int main(int argc, char *argv[]){
         }
     }
     gen(steps);
+    gsl_polynomial();
     return 0;
 }
