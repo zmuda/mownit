@@ -10,9 +10,8 @@
 #define NEWTON 1
 
 /**
-* w takim prostokącie "zamknięte" będą wygenerowane punkty
+* w takim pasie "zamknięte" będą wygenerowane punkty
 */
-const int WIDTH = 800;
 const int HEIGHT = 600;
 /**
 * wygenerowane punkty
@@ -268,8 +267,8 @@ int main(int argc, char *argv[]){
         gettimeofday(&stop, NULL);
         times[l]=stop.tv_usec - start.tv_usec;
     }
-    printf("\nGSL polynomial inicjalizacja zajęła średnio %lu usec\n",gsl_stats_mean(times,1,10));
-    printf("\tOdchylenie standardowe %lu usec\n",gsl_stats_sd(times,1,10));
+    printf("\nGSL polynomial inicjalizacja zajęła średnio %f usec\n",gsl_stats_mean(times,1,10));
+    printf("\tOdchylenie standardowe %f usec\n",gsl_stats_sd(times,1,10));
 
     l=10;
     while(l--){
@@ -283,8 +282,8 @@ int main(int argc, char *argv[]){
         gettimeofday(&stop, NULL);
         times[l]=stop.tv_usec - start.tv_usec;
     }
-    printf("\nGSL cspline inicjalizacja zajęła średnio %lu usec\n",gsl_stats_mean(times,1,10));
-    printf("\tOdchylenie standardowe %lu usec\n",gsl_stats_sd(times,1,10));
+    printf("\nGSL cspline inicjalizacja zajęła średnio %f usec\n",gsl_stats_mean(times,1,10));
+    printf("\tOdchylenie standardowe %f usec\n",gsl_stats_sd(times,1,10));
 
     l=10;
     while(l--){
@@ -298,8 +297,8 @@ int main(int argc, char *argv[]){
         gettimeofday(&stop, NULL);
         times[l]=stop.tv_usec - start.tv_usec;
     }
-    printf("\nGSL akima inicjalizacja zajęła średnio %lu usec\n",gsl_stats_mean(times,1,10));
-    printf("\tOdchylenie standardowe %lu usec\n",gsl_stats_sd(times,1,10));
+    printf("\nGSL akima inicjalizacja zajęła średnio %f usec\n",gsl_stats_mean(times,1,10));
+    printf("\tOdchylenie standardowe %f usec\n",gsl_stats_sd(times,1,10));
 
     l=10;
     while(l--){
@@ -311,8 +310,8 @@ int main(int argc, char *argv[]){
         gettimeofday(&stop, NULL);
         times[l]=stop.tv_usec - start.tv_usec;
     }
-    printf("\nMojej met. Lagrange'a inicjalizacja zajęła średnio %lu usec\n",gsl_stats_mean(times,1,10));
-    printf("\tOdchylenie standardowe %lu usec\n",gsl_stats_sd(times,1,10));
+    printf("\nMojej met. Lagrange'a inicjalizacja zajęła średnio %f usec\n",gsl_stats_mean(times,1,10));
+    printf("\tOdchylenie standardowe %f usec\n",gsl_stats_sd(times,1,10));
 
     l=10;
     while(l--){
@@ -324,12 +323,12 @@ int main(int argc, char *argv[]){
         gettimeofday(&stop, NULL);
         times[l]=stop.tv_usec - start.tv_usec;
     }
-    printf("\nMojej met. Newton'a inicjalizacja zajęła średnio %lu usec\n",gsl_stats_mean(times,1,10));
-    printf("\tOdchylenie standardowe %lu usec\n",gsl_stats_sd(times,1,10));
+    printf("\nMojej met. Newton'a inicjalizacja zajęła średnio %f usec\n",gsl_stats_mean(times,1,10));
+    printf("\tOdchylenie standardowe %f usec\n",gsl_stats_sd(times,1,10));
 
     printf("////////////////////////////////////////////////////////\n\n");
 
-gettimeofday(&start, NULL);
+
     gsl_interp_accel *acc = gsl_interp_accel_alloc();
     gsl_interp* interp = gsl_interp_alloc(gsl_interp_polynomial, pointsNum);
     gsl_interp_init (interp,xa,ya, pointsNum);
@@ -341,8 +340,7 @@ gettimeofday(&start, NULL);
     polynomial* newtonInterp =polynomial_alloc(NEWTON,pointsNum);
     polynomial_init(lagrangeInterp,xa,ya, pointsNum);
     polynomial_init(newtonInterp,xa,ya, pointsNum);
-gettimeofday(&stop, NULL);
-printf("\n<< %lu >>\n",stop.tv_usec - start.tv_usec);
+
 
     int res = pointsNum/3;
     int lenBak= (xa[pointsNum-1] - xa[0]+1)*res;
