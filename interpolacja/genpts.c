@@ -366,50 +366,82 @@ int main(int argc, char *argv[]){
 
 
     // polynomial interp     - mierzymy czas
-    len =lenBak;
-    gettimeofday(&start, NULL);
-    while(len--){
-        gsl[len]=gsl_interp_eval(interp, xa, ya, x[len], acc);
+    l=10;
+    while(l--){
+        len =lenBak;
+        gettimeofday(&start, NULL);
+        while(len--){
+            gsl[len]=gsl_interp_eval(interp, xa, ya, x[len], acc);
+        }
+        gettimeofday(&stop, NULL);
+        //printf("GSL polynomial ewaluacja zajęła %lu usec\n", stop.tv_usec - start.tv_usec);
+        times[l]=stop.tv_usec - start.tv_usec;
     }
-    gettimeofday(&stop, NULL);
-    printf("GSL polynomial ewaluacja zajęła %lu usec\n", stop.tv_usec - start.tv_usec);
+    printf("GSL polynomial ewaluacja zajęła średnio %f usec\n",gsl_stats_mean(times,1,10));
+    printf("\tOdchylenie standardowe %f usec\n",gsl_stats_sd(times,1,10));
+
 
     // akima - mierzymy czas
-    len =lenBak;
-    gettimeofday(&start, NULL);
-    while(len--){
-        akma[len]=gsl_interp_eval(akima, xa, ya, x[len], acc);
+    l=10;
+    while(l--){
+        len =lenBak;
+        gettimeofday(&start, NULL);
+        while(len--){
+            akma[len]=gsl_interp_eval(akima, xa, ya, x[len], acc);
+        }
+        gettimeofday(&stop, NULL);
+        //printf("GSL akima ewaluacja zajęła %lu usec\n", stop.tv_usec - start.tv_usec);
+        times[l]=stop.tv_usec - start.tv_usec;
     }
-    gettimeofday(&stop, NULL);
-    printf("GSL akima ewaluacja zajęła %lu usec\n", stop.tv_usec - start.tv_usec);
+    printf("GSL akima ewaluacja zajęła średnio %f usec\n",gsl_stats_mean(times,1,10));
+    printf("\tOdchylenie standardowe %f usec\n",gsl_stats_sd(times,1,10));
 
     // cspline - mierzymy czas
-    len =lenBak;
-    gettimeofday(&start, NULL);
-    while(len--){
-        cspn[len]=gsl_interp_eval(cspline, xa, ya, x[len], acc);
+    l=10;
+    while(l--){
+        len =lenBak;
+        gettimeofday(&start, NULL);
+        while(len--){
+            cspn[len]=gsl_interp_eval(cspline, xa, ya, x[len], acc);
+        }
+        gettimeofday(&stop, NULL);
+        //printf("GSL cspline ewaluacja zajęła %lu usec\n", stop.tv_usec - start.tv_usec);
+        times[l]=stop.tv_usec - start.tv_usec;
     }
-    gettimeofday(&stop, NULL);
-    printf("GSL cspline ewaluacja zajęła %lu usec\n", stop.tv_usec - start.tv_usec);
-
+    printf("GSL cspline ewaluacja zajęła średnio %f usec\n",gsl_stats_mean(times,1,10));
+    printf("\tOdchylenie standardowe %f usec\n",gsl_stats_sd(times,1,10));
 
     // lagrange - mierzymy czas
-    len =lenBak;
-    gettimeofday(&start, NULL);
-    while(len--){
-        lgrng[len]=polynomial_eval(lagrangeInterp,x[len]);
+    l=10;
+    while(l--){
+        len =lenBak;
+        gettimeofday(&start, NULL);
+        while(len--){
+            lgrng[len]=polynomial_eval(lagrangeInterp,x[len]);
+        }
+        gettimeofday(&stop, NULL);
+        //printf("Mojej met. Lagrange'a ewaluacja zajęła %lu usec\n", stop.tv_usec - start.tv_usec);
+        times[l]=stop.tv_usec - start.tv_usec;
     }
-    gettimeofday(&stop, NULL);
-    printf("Mojej met. Lagrange'a ewaluacja zajęła %lu usec\n", stop.tv_usec - start.tv_usec);
+    printf("Mojej met. Lagrange'a ewaluacja zajęła średnio %f usec\n",gsl_stats_mean(times,1,10));
+    printf("\tOdchylenie standardowe %f usec\n",gsl_stats_sd(times,1,10));
 
     // newton -mierzymy czas
-    len =lenBak;
-    gettimeofday(&start, NULL);
-    while(len--){
-        nwtn[len]=polynomial_eval(newtonInterp,x[len]);
+    l=10;
+    while(l--){
+        len =lenBak;
+        gettimeofday(&start, NULL);
+        while(len--){
+            nwtn[len]=polynomial_eval(newtonInterp,x[len]);
+        }
+        gettimeofday(&stop, NULL);
+        //printf("Mojej met. Newton'a ewaluacja zajęła %lu usec\n", stop.tv_usec - start.tv_usec);
+        times[l]=stop.tv_usec - start.tv_usec;
     }
-    gettimeofday(&stop, NULL);
-    printf("Mojej met. Newton'a ewaluacja zajęła %lu usec\n", stop.tv_usec - start.tv_usec);
+    printf("Mojej met. Newton'a ewaluacja zajęła średnio %f usec\n",gsl_stats_mean(times,1,10));
+    printf("\tOdchylenie standardowe %f usec\n",gsl_stats_sd(times,1,10));
+
+
 
     FILE* out = fopen("out.tmp","w");
     len = (xa[pointsNum-1] - xa[0]+1)*res;
