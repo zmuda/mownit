@@ -26,6 +26,7 @@ void gen(int steps){
         x+= rand()%tmp+1;
         xa[stepsBak-steps-1]=x;
         ya[stepsBak-steps-1]=y;
+        x=stepsBak-steps-1;
         xa[stepsBak-steps-1]=x;
         ya[stepsBak-steps-1]=x*x*x+x*x+x+1;
 
@@ -166,20 +167,34 @@ void Newton(polynomial* pol, double* xa, double* ya, int num){
     while(j<roots){
         int k=1;
         while(k<=j){
-            tab[j][k]=(tab[j][k-1]-tab[j-1][k-1])/(ya[j]-ya[j-k]);
+            tab[j][k]=(tab[j][k-1]-tab[j-1][k-1])/(xa[j]-xa[j-k]);
             //printf("(%i,%i)=((%i,%i)-(%i,%i))/(%i-%i)\n",j,k,j,k-1,j-1,k-1,j,j-k);
+            //printf("(%i,%i)=((%f)-(%f))/(%f-%f)\n",j,k,tab[j][k-1],tab[j-1][k-1],xa[j],xa[j-k]);
             printf("(%i,%i)=%f\t",j,k,tab[j][k]);
             k++;
         }
         j++;
     }
-    /*
-    j=roots;
-    while(j--){
-        pol->a[j]=tab[j][j];
-        printf("<%f>\n",tab[j][j]);
+
+    polynomial* tmp = polynomial_alloc(-1,pol->n);
+    polynomial* n = polynomial_alloc(-1,pol->n);
+    n->a[0]=1;
+    i=0;
+    while(i<roots){
+        polynomial* m = polycopy(n);
+        aisadotscalar(n,tab[i][i]);
+        aisaplusb(tmp,n);
+        j=roots;
+        n=m;
+        aisadotmonomial(n,-xa[i]);
+        i++;
     }
-    */
+    i=roots;
+    while(i--){
+        pol->a[i]=tmp->a[i];
+    }
+    polynomial_free(tmp);
+    polynomial_free(n);
 }
 
 void polynomial_init(polynomial* pol, double* xa, double* ya, int num){
