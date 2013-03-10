@@ -3,6 +3,8 @@
 #include <time.h>
 #include <gsl/gsl_interp.h>
 #include <gsl/gsl_spline.h>
+#include <sys/time.h>
+#include <gsl/gsl_statistics.h>
 
 #define LAGRANGE 0
 #define NEWTON 1
@@ -29,44 +31,19 @@ int pointsNum;
 void gen(int num){
     srand(time(NULL));
     int x,y;
-    double spare = WIDTH;
+    //double spare = WIDTH;
     x=0;
     xa = (double*) malloc(num*sizeof(double));
     ya = (double*) malloc(num*sizeof(double));
     pointsNum=num;
     while(num--){
-        spare = WIDTH-x;
         y= rand()%(HEIGHT);
-        int tmp = (spare/num)+1;
-        if(tmp<2)tmp=spare;
-        x+= rand()%tmp+1;
+        x+= rand()%17+1;
         xa[pointsNum-num-1]=x;
         ya[pointsNum-num-1]=y;
-/*
-        x=pointsNum-num-1;
-        xa[pointsNum-num-1]=x;
-        ya[pointsNum-num-1]=x*x*x+x*x+x+1;
-*/
     }
 }
 
-/**
-* TODO
-*/
-void gsl_polynomial(){
-    gsl_interp_accel *acc = gsl_interp_accel_alloc();
-    gsl_interp* inter = gsl_interp_alloc(gsl_interp_polynomial, pointsNum);
-    gsl_interp_init (inter,xa,ya, pointsNum);
-    double xi, yi;
-    for (xi = xa[0]; xi < xa[pointsNum-1]; xi += 1.0 ) {
-        yi = gsl_interp_eval(inter, xa, ya, xi, acc);
-        printf("%lf %lf\n", xi, yi);
-    }
-    gsl_interp_free(inter);
-    gsl_interp_accel_free(acc);
-    free(xa);
-    free(ya);
-}
 //////////////////////////////////////////////////////////////////////////////////
 struct polynomialStruct {
     int n;
@@ -273,43 +250,179 @@ int main(int argc, char *argv[]){
     }
 
     gen(num);
+    struct timeval stop, start;
 
+    printf("\n////////////////////////////////////////////////////////");
+    //      TESTING
+
+    int l = 10;
+    double times[10];
+    while(l--){
+        gettimeofday(&start, NULL);
+        gsl_interp_accel *aTmp = gsl_interp_accel_alloc();
+        gsl_interp* iTmp = gsl_interp_alloc(gsl_interp_polynomial, pointsNum);
+        gsl_interp_init (iTmp,xa,ya, pointsNum);
+        gsl_interp_free(iTmp);
+        gsl_interp_accel_free(aTmp);
+
+        gettimeofday(&stop, NULL);
+        times[l]=stop.tv_usec - start.tv_usec;
+    }
+    printf("\nGSL polynomial inicjalizacja zajęła średnio %lu usec\n",gsl_stats_mean(times,1,10));
+    printf("\tOdchylenie standardowe %lu usec\n",gsl_stats_sd(times,1,10));
+
+    l=10;
+    while(l--){
+        gettimeofday(&start, NULL);
+        gsl_interp_accel *aTmp = gsl_interp_accel_alloc();
+        gsl_interp* iTmp = gsl_interp_alloc(gsl_interp_cspline, pointsNum);
+        gsl_interp_init (iTmp,xa,ya, pointsNum);
+        gsl_interp_free(iTmp);
+        gsl_interp_accel_free(aTmp);
+
+        gettimeofday(&stop, NULL);
+        times[l]=stop.tv_usec - start.tv_usec;
+    }
+    printf("\nGSL cspline inicjalizacja zajęła średnio %lu usec\n",gsl_stats_mean(times,1,10));
+    printf("\tOdchylenie standardowe %lu usec\n",gsl_stats_sd(times,1,10));
+
+    l=10;
+    while(l--){
+        gettimeofday(&start, NULL);
+        gsl_interp_accel *aTmp = gsl_interp_accel_alloc();
+        gsl_interp* iTmp = gsl_interp_alloc(gsl_interp_akima, pointsNum);
+        gsl_interp_init (iTmp,xa,ya, pointsNum);
+        gsl_interp_free(iTmp);
+        gsl_interp_accel_free(aTmp);
+
+        gettimeofday(&stop, NULL);
+        times[l]=stop.tv_usec - start.tv_usec;
+    }
+    printf("\nGSL akima inicjalizacja zajęła średnio %lu usec\n",gsl_stats_mean(times,1,10));
+    printf("\tOdchylenie standardowe %lu usec\n",gsl_stats_sd(times,1,10));
+
+    l=10;
+    while(l--){
+        gettimeofday(&start, NULL);
+        polynomial* lagrangeInterpT =polynomial_alloc(LAGRANGE,pointsNum);
+        polynomial_init(lagrangeInterpT,xa,ya, pointsNum);
+        polynomial_free(lagrangeInterpT);
+
+        gettimeofday(&stop, NULL);
+        times[l]=stop.tv_usec - start.tv_usec;
+    }
+    printf("\nMojej met. Lagrange'a inicjalizacja zajęła średnio %lu usec\n",gsl_stats_mean(times,1,10));
+    printf("\tOdchylenie standardowe %lu usec\n",gsl_stats_sd(times,1,10));
+
+    l=10;
+    while(l--){
+        gettimeofday(&start, NULL);
+        polynomial* newtonInterpT =polynomial_alloc(NEWTON,pointsNum);
+        polynomial_init(newtonInterpT,xa,ya, pointsNum);
+        polynomial_free(newtonInterpT);
+
+        gettimeofday(&stop, NULL);
+        times[l]=stop.tv_usec - start.tv_usec;
+    }
+    printf("\nMojej met. Newton'a inicjalizacja zajęła średnio %lu usec\n",gsl_stats_mean(times,1,10));
+    printf("\tOdchylenie standardowe %lu usec\n",gsl_stats_sd(times,1,10));
+
+    printf("////////////////////////////////////////////////////////\n\n");
+
+gettimeofday(&start, NULL);
     gsl_interp_accel *acc = gsl_interp_accel_alloc();
     gsl_interp* interp = gsl_interp_alloc(gsl_interp_polynomial, pointsNum);
     gsl_interp_init (interp,xa,ya, pointsNum);
-
+    gsl_interp* cspline = gsl_interp_alloc(gsl_interp_cspline , pointsNum);
+    gsl_interp_init (cspline,xa,ya, pointsNum);
+    gsl_interp* akima = gsl_interp_alloc(gsl_interp_akima , pointsNum);
+    gsl_interp_init (akima,xa,ya, pointsNum);
     polynomial* lagrangeInterp =polynomial_alloc(LAGRANGE,pointsNum);
     polynomial* newtonInterp =polynomial_alloc(NEWTON,pointsNum);
     polynomial_init(lagrangeInterp,xa,ya, pointsNum);
     polynomial_init(newtonInterp,xa,ya, pointsNum);
+gettimeofday(&stop, NULL);
+printf("\n<< %lu >>\n",stop.tv_usec - start.tv_usec);
 
     int res = pointsNum/3;
-    int len = (xa[pointsNum-1] - xa[0]+1)*res;
+    int lenBak= (xa[pointsNum-1] - xa[0]+1)*res;
+    int len =lenBak;
     //printf("\n\n\n<<%i>>\n\n\n",len);
     double* x = malloc(len*sizeof(double));
     double* gsl = malloc(len*sizeof(double));
     double* lgrng = malloc(len*sizeof(double));
     double* nwtn = malloc(len*sizeof(double));
+    double* akma = malloc(len*sizeof(double));
+    double* cspn = malloc(len*sizeof(double));
 
+    double step = 1.0/res;
+
+    // oblicznie położeń punktów siatki
     double xi= xa[pointsNum-1];
     while(len--){
+        if(xi<xa[0])xi=xa[0];// gsl się buntuje
         x[len]=xi;
-        gsl[len]=gsl_interp_eval(interp, xa, ya, xi, acc);
-        lgrng[len]=polynomial_eval(lagrangeInterp,xi);
-        nwtn[len]=polynomial_eval(newtonInterp,xi);
-        xi-=1.0/res;
-        if(xi<xa[0])xi=xa[0];
+        xi-=step;
     }
 
+
+
+    // polynomial interp     - mierzymy czas
+    len =lenBak;
+    gettimeofday(&start, NULL);
+    while(len--){
+        gsl[len]=gsl_interp_eval(interp, xa, ya, x[len], acc);
+    }
+    gettimeofday(&stop, NULL);
+    printf("GSL polynomial ewaluacja zajęła %lu usec\n", stop.tv_usec - start.tv_usec);
+
+    // akima - mierzymy czas
+    len =lenBak;
+    gettimeofday(&start, NULL);
+    while(len--){
+        akma[len]=gsl_interp_eval(akima, xa, ya, x[len], acc);
+    }
+    gettimeofday(&stop, NULL);
+    printf("GSL akima ewaluacja zajęła %lu usec\n", stop.tv_usec - start.tv_usec);
+
+    // cspline - mierzymy czas
+    len =lenBak;
+    gettimeofday(&start, NULL);
+    while(len--){
+        cspn[len]=gsl_interp_eval(cspline, xa, ya, x[len], acc);
+    }
+    gettimeofday(&stop, NULL);
+    printf("GSL cspline ewaluacja zajęła %lu usec\n", stop.tv_usec - start.tv_usec);
+
+
+    // lagrange - mierzymy czas
+    len =lenBak;
+    gettimeofday(&start, NULL);
+    while(len--){
+        lgrng[len]=polynomial_eval(lagrangeInterp,x[len]);
+    }
+    gettimeofday(&stop, NULL);
+    printf("Mojej met. Lagrange'a ewaluacja zajęła %lu usec\n", stop.tv_usec - start.tv_usec);
+
+    // newton -mierzymy czas
+    len =lenBak;
+    gettimeofday(&start, NULL);
+    while(len--){
+        nwtn[len]=polynomial_eval(newtonInterp,x[len]);
+    }
+    gettimeofday(&stop, NULL);
+    printf("Mojej met. Newton'a ewaluacja zajęła %lu usec\n", stop.tv_usec - start.tv_usec);
 
     FILE* out = fopen("out.tmp","w");
     len = (xa[pointsNum-1] - xa[0]+1)*res;
     while(len--){
-        fprintf(out,"%f\t%f\t%f\t%f\n",x[len],gsl[len],lgrng[len],nwtn[len]);
+        fprintf(out,"%f\t%f\t%f\t%f\t%f\t%f\n",x[len],gsl[len],lgrng[len],nwtn[len],cspn[len],akma[len]);
     }
     polynomial_free(lagrangeInterp);
     polynomial_free(newtonInterp);
     gsl_interp_free(interp);
+    gsl_interp_free(cspline);
+    gsl_interp_free(akima);
     gsl_interp_accel_free(acc);
     fclose(out);
 
@@ -320,21 +433,5 @@ int main(int argc, char *argv[]){
     }
     fclose(out2);
     free(xa);free(ya);free(x);free(lgrng);free(nwtn);free(gsl);
-
-/*
-    polynomial* tmp=polynomial_alloc(-1,pointsNum);
-    polynomial_init(tmp,xa,ya,pointsNum);
-    int i= pointsNum;
-    while(i--){
-        printf("%f\n",tmp->a[i]);
-    }
-
-    i= pointsNum;
-    while(i--){
-        printf("%f\t%f\t%f\n",xa[i],ya[i],polynomial_eval(tmp,xa[i]));
-    }
-
-    polynomial_free(tmp);
-*/
     return 0;
 }
