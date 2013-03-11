@@ -162,7 +162,7 @@ void Lagrange(polynomial* pol, double* xa, double* ya, int num){
         addPolynomial(pol,tmp);
     }
 /*
-    //korekcja znaków DONE błąd przy multiply (brak minusa)
+    //korekcja znaków 
     i= roots;
     while(i--){
         if( i%2 ){
