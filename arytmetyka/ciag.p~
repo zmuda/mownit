@@ -1,2 +1,0 @@
-plot 'out.tmp' using 2:1 title 'doubles' with linespoints, 'out.tmp' using 2:3 title 'floats' with linespoints
-pause -1
