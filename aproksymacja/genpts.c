@@ -12,6 +12,34 @@ void mul(double a[], double b[], double res[], int width,int height){
         for(j=0;j<width;j++){
             for(k=0;k<height;k++){
                 res[k+i*height]+=a[i*width+j]*b[k+j*height];
+                printf("(%d %d %d)\n",k+i*height,i*width+j,k+j*height);
+            }
+        }
+    }
+}
+void mulNaive(double a[], double b[], double res[], int width,int height){
+    int i,j,k;
+    for(k=0;k<height;k++){
+        for(j=0;j<height;j++){
+            for(i=0;i<width;i++){
+                res[j+k*height]+=a[i+k*width]*b[j+i*height];
+                printf("%d %d %d\n",j+k*height,i+k*width,j+i*height);
+            }
+        }
+    }
+}
+
+void mulUpgraded(double a[], double b[], double res[], int width,int height){
+    int i,j,k;
+    for(i=0;i<height;i++){
+        for(j=0;j<width;j++){
+            for(k=0;k<height;k++){
+                //res[k+i*height]+=a[i*width+j]*b[k+j*height];
+                res[k+i*height]+=a[i*width+j]*b[j+k*height];
+                printf("(%d)\t",i*width+j);
+                printf("[%d]\t",k+i*height);
+                //printf("%d\t",j+height*k);
+                printf("%d\n",j*height+k);
             }
         }
     }
@@ -27,7 +55,6 @@ void kick(double* m, int width,int height){
     }
     memcpy(m,tmp,sizeof(double)*width*height);
 }
-
 void mul_upgraded2(double a[], double b[], double res[], int width,int height){
     //kick(b,width,height);
     int i,j,k;
@@ -41,7 +68,6 @@ void mul_upgraded2(double a[], double b[], double res[], int width,int height){
         }
     }
 }
-
 void mul_upgraded(double a[], double b[], double res[], int width,int height){
     //kick(b,width,height);
     int i,j,k;
@@ -56,8 +82,9 @@ void mul_upgraded(double a[], double b[], double res[], int width,int height){
     }
 }
 
-#define WIDTH 5
-#define HEIGHT 4
+#define WIDTH 4
+#define HEIGHT 3
+#define TIMES 1
 
 void gen(double* m, int width, int height){
     srand(time(NULL));
@@ -81,8 +108,32 @@ void display(double* m,int width, int height){
         printf("%.2f\t",m[i]);
 
     }
-
+    printf("\n");
 }
+int main2(int argc, char *argv[]){
+    double a[]={2,3,4,5,
+                6,7,8,9,
+                10,11,12,13};
+    double b[]={2,3,4,5,
+                6,7,8,9,
+                10,11,12,13};
+    double c[]={0,0,0,
+                0,0,0,
+                0,0,0};
+    double d[]={0,0,0,
+                0,0,0,
+                0,0,0};
+    display(a,3,3);
+    display(b,3,3);
+    //mul(a,b,c,2,2);
+    mulNaive(a,b,c,3,3);
+    display(c,3,3);
+    //kick(b,3,3);
+    mul(a,b,d,3,3);
+    display(d,3,3);
+    return 0;
+}
+
 //////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char *argv[]){
 
@@ -119,54 +170,66 @@ int main(int argc, char *argv[]){
     gsl_matrix_view B = gsl_matrix_view_array(b, WIDTH, HEIGHT);
     gsl_matrix_view C = gsl_matrix_view_array(c, HEIGHT, HEIGHT);
 
-    double times[10];
+    double times[TIMES];
     struct timeval stop, start;
     int l;
 
 
-    l=10;
+    l=TIMES;
     while(l--){
         gettimeofday(&start, NULL);
-        mul_upgraded(a,b,c,WIDTH,HEIGHT);
+        mulNaive(a,b,c,WIDTH,HEIGHT);
         gettimeofday(&stop, NULL);
         times[l]=(double)stop.tv_usec+(double)stop.tv_sec*1000000 - (double)start.tv_usec-(double)start.tv_sec*1000000;
-        printf("zajela %.1f usec\n",times[l]);
+        //printf("zajela %.1f usec\n",times[l]);
     }
-    printf("Ulepszone mnozenie srednio zajelo %f usec\n",gsl_stats_mean(times,1,10));
-    printf("\tOdchylenie standardowe %f usec\n",gsl_stats_sd(times,1,10));
+    printf("Proste mnozenie srednio zajelo %f usec\n",gsl_stats_mean(times,1,TIMES));
+    printf("\tOdchylenie standardowe %f usec\n",gsl_stats_sd(times,1,TIMES));
 
-    display(c,HEIGHT,HEIGHT);
-    zeros(c,HEIGHT,HEIGHT);
 
-    kick(b,WIDTH,HEIGHT);
-    //sleep(1);
-    l=10;
+    l=TIMES;
     while(l--){
         gettimeofday(&start, NULL);
+        kick(b,HEIGHT,WIDTH);
         mul(a,b,c,WIDTH,HEIGHT);
         gettimeofday(&stop, NULL);
         times[l]=(double)stop.tv_usec+(double)stop.tv_sec*1000000 - (double)start.tv_usec-(double)start.tv_sec*1000000;
-        printf("zajela %.1f usec\n",times[l]);
+        //printf("zajela %.1f usec\n",times[l]);
     }
-    printf("Proste mnozenie srednio zajelo %f usec\n",gsl_stats_mean(times,1,10));
-    printf("\tOdchylenie standardowe %f usec\n",gsl_stats_sd(times,1,10));
+    printf("Ulepszone mnozenie srednio zajelo %f usec\n",gsl_stats_mean(times,1,TIMES));
+    printf("\tOdchylenie standardowe %f usec\n",gsl_stats_sd(times,1,TIMES));
+
+    //display(c,HEIGHT,HEIGHT);
+    zeros(c,HEIGHT,HEIGHT);
 
     //sleep(1);
-    display(c,HEIGHT,HEIGHT);
+    l=TIMES;
+    while(l--){
+        gettimeofday(&start, NULL);
+        mulNaive(a,b,c,WIDTH,HEIGHT);
+        gettimeofday(&stop, NULL);
+        times[l]=(double)stop.tv_usec+(double)stop.tv_sec*1000000 - (double)start.tv_usec-(double)start.tv_sec*1000000;
+        //printf("zajela %.1f usec\n",times[l]);
+    }
+    printf("Proste mnozenie srednio zajelo %f usec\n",gsl_stats_mean(times,1,TIMES));
+    printf("\tOdchylenie standardowe %f usec\n",gsl_stats_sd(times,1,TIMES));
+
+    //sleep(1);
+    //display(c,HEIGHT,HEIGHT);
 
 
 
     //sleep(1);
-    l=10;
+    l=TIMES;
     while(l--){
         gettimeofday(&start, NULL);
         gsl_blas_dgemm (CblasNoTrans, CblasNoTrans,1.0, &A.matrix, &B.matrix,0.0, &C.matrix);
         gettimeofday(&stop, NULL);
         times[l]=(double)stop.tv_usec+(double)stop.tv_sec*1000000 - (double)start.tv_usec-(double)start.tv_sec*1000000;
-        printf("zajela %.1f usec\n",times[l]);
+        //printf("zajela %.1f usec\n",times[l]);
     }
-    printf("BLAS mnozenie srednio zajelo %f usec\n",gsl_stats_mean(times,1,10));
-    printf("\tOdchylenie standardowe %f usec\n",gsl_stats_sd(times,1,10));
+    printf("BLAS mnozenie srednio zajelo %f usec\n",gsl_stats_mean(times,1,TIMES));
+    printf("\tOdchylenie standardowe %f usec\n",gsl_stats_sd(times,1,TIMES));
 
 
 /*
