@@ -196,9 +196,9 @@ int main(int argc, char *argv[]) {
             CB(0), CB(1),COMPL/3, CB(2),COMPL*2/3, CB(3),COMPL);
     print_stats(cov,chisq);
 #endif
-    fprintf(fd2,"plot 'tmp.out' using 1:2 title 'naive' linecolor rgb 'blue'");
-    fprintf(fd2,",'tmp.out' using 1:4 title 'improved' linecolor rgb 'green'");
-    fprintf(fd2,",'tmp.out' using 1:6 title 'blas' linecolor rgb 'red'");
+    fprintf(fd2,"plot 'tmp.out' using 1:2:3 title 'naive' linecolor rgb 'blue' with yerrorbars");
+    fprintf(fd2,",'tmp.out' using 1:4:5 title 'improved' linecolor rgb 'green' with yerrorbars");
+    fprintf(fd2,",'tmp.out' using 1:6:7 title 'blas' linecolor rgb 'red' with yerrorbars");
     fprintf(fd2,",blas(x) with lines linecolor rgb 'red'");
     fprintf(fd2,", improved(x) with lines linecolor rgb 'green'");
     fprintf(fd2,",naive(x) with lines linecolor rgb 'blue'");
