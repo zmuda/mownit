@@ -6,6 +6,11 @@
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_multifit.h>
 #include "parametry.h"
+
+//#define WIDTH 300
+//#define HEIGHT 300
+
+
 void mul(double a[], double b[], double res[], int width,int height) {
     int i,j,k;
     for(i=0; i<height; i++) {
@@ -28,6 +33,7 @@ void mulNaive(double a[], double b[], double res[], int width,int height) {
         }
     }
 }
+
 void gen(double* m, int width, int height) {
     //srand(time(NULL));
     int i;
@@ -72,14 +78,15 @@ int main(int argc, char *argv[]) {
     struct timeval stop, start;
     int l;
 
-    int width = INIT;
-    int height = INIT;
-    c=malloc(sizeof(double)*height*height);
-    b=malloc(sizeof(double)*width*height);
-    a=malloc(sizeof(double)*width*height);
-    gen(a,width,height);
-    gen(b,height,width);
-    zeros(c,height,height);
+    int WIDTH = INIT;
+    int HEIGHT = INIT;
+    c=malloc(sizeof(double)*HEIGHT*HEIGHT);
+    b=malloc(sizeof(double)*WIDTH*HEIGHT);
+    a=malloc(sizeof(double)*WIDTH*HEIGHT);
+    gen(a,WIDTH,HEIGHT);
+    gen(b,HEIGHT,WIDTH);
+    zeros(c,HEIGHT,HEIGHT);
+
 
     int n =(1+(INIT-MIN)/STEP);
     gsl_matrix *X,*XB, *cov;
@@ -99,32 +106,38 @@ int main(int argc, char *argv[]) {
     cU = gsl_vector_alloc (4);
     cB = gsl_vector_alloc (4);
     cov = gsl_matrix_alloc (4, 4);
+
     FILE* fd = fopen("tmp.out","w");
     FILE* fd2 = fopen("tmp2.out","w");
     int i=n;
     double xi, yi, ei, chisq;
-    while(width>MIN) {
+
+    while(WIDTH>MIN) {
         i--;
 #ifdef VERBOSE
-        printf("\t<%dx%d>\n",width,height);
+        printf("\t<%dx%d>\n",WIDTH,HEIGHT);
 #endif
         gsl_matrix_set (X, i, 0, 1.0);
-        gsl_matrix_set (X, i, 1, width);
-        gsl_matrix_set (X, i, 2, width*width);
-        gsl_matrix_set (X, i, 3, width*width*width);
+        gsl_matrix_set (X, i, 1, WIDTH);
+        gsl_matrix_set (X, i, 2, WIDTH*WIDTH);
+        gsl_matrix_set (X, i, 3, WIDTH*WIDTH*WIDTH);
+
         gsl_matrix_set (XB, i, 0, 1.0);
-        gsl_matrix_set (XB, i, 1, pow(width,COMPL/3));
-        gsl_matrix_set (XB, i, 2, pow(width,COMPL*2/3));
-        gsl_matrix_set (XB, i, 3, pow(width,COMPL));
-        gsl_matrix_view A = gsl_matrix_view_array(a, height, width);
-        gsl_matrix_view B = gsl_matrix_view_array(b, width, height);
-        gsl_matrix_view C = gsl_matrix_view_array(c, height, height);
+        gsl_matrix_set (XB, i, 1, pow(WIDTH,COMPL/3));
+        gsl_matrix_set (XB, i, 2, pow(WIDTH,COMPL*2/3));
+        gsl_matrix_set (XB, i, 3, pow(WIDTH,COMPL));
+
+        gsl_matrix_view A = gsl_matrix_view_array(a, HEIGHT, WIDTH);
+        gsl_matrix_view B = gsl_matrix_view_array(b, WIDTH, HEIGHT);
+        gsl_matrix_view C = gsl_matrix_view_array(c, HEIGHT, HEIGHT);
+
         l=TIMES;
         while(l--) {
             gettimeofday(&start, NULL);
-            mulNaive(a,b,c,width,height);
+            mulNaive(a,b,c,WIDTH,HEIGHT);
             gettimeofday(&stop, NULL);
             times[l]=(double)stop.tv_usec+(double)stop.tv_sec*1000000 - (double)start.tv_usec-(double)start.tv_sec*1000000;
+            //printf("zajela %.1f usec\n",times[l]);
         }
         yi=gsl_stats_mean(times,1,TIMES);
         ei=gsl_stats_sd(times,1,TIMES);
@@ -134,13 +147,16 @@ int main(int argc, char *argv[]) {
         printf("Proste mnozenie srednio zajelo %f usec\n",yi);
         printf("\tOdchylenie standardowe %f usec\n",ei);
 #endif
-        fprintf(fd,"%f\t%f\t%f\t",(double)height,yi,ei);
+        fprintf(fd,"%f\t%f\t%f\t",(double)HEIGHT,yi,ei);
+
+
         l=TIMES;
         while(l--) {
             gettimeofday(&start, NULL);
-            mul(a,b,c,width,height);
+            mul(a,b,c,WIDTH,HEIGHT);
             gettimeofday(&stop, NULL);
             times[l]=(double)stop.tv_usec+(double)stop.tv_sec*1000000 - (double)start.tv_usec-(double)start.tv_sec*1000000;
+            //printf("zajela %.1f usec\n",times[l]);
         }
         yi=gsl_stats_mean(times,1,TIMES);
         ei=gsl_stats_sd(times,1,TIMES);
@@ -151,6 +167,7 @@ int main(int argc, char *argv[]) {
         printf("\tOdchylenie standardowe %f usec\n",ei);
 #endif
         fprintf(fd,"%f\t%f\t",yi,ei);
+
         l=TIMES;
         while(l--) {
             gettimeofday(&start, NULL);
@@ -167,35 +184,51 @@ int main(int argc, char *argv[]) {
         printf("\tOdchylenie standardowe %f usec\n",ei);
 #endif
         fprintf(fd,"%f\t%f\n",yi,ei);
-        width-=STEP;
-        height-=STEP;
+        WIDTH-=STEP;
+        HEIGHT-=STEP;
     }
-    gsl_multifit_linear_workspace * work = gsl_multifit_linear_alloc (n, 4);
-    gsl_multifit_wlinear (X, wN, yN, cN, cov, &chisq, work);
-    fprintf (fd2,"naive(x) = %g + %g*x + %g*x**2 + %g*x**3\n",
-             CN(0), CN(1), CN(2), CN(3));
+
+        gsl_multifit_linear_workspace * work = gsl_multifit_linear_alloc (n, 4);
+        gsl_multifit_wlinear (X, wN, yN, cN, cov, &chisq, work);
+//        gsl_multifit_linear_free (work);
+
+
+        fprintf (fd2,"naive(x) = %g + %g*x + %g*x**2 + %g*x**3\n",
+                 CN(0), CN(1), CN(2), CN(3));
 #ifdef VERBOSE
-    printf ("# best fit: Y = %g + %g X + %g X^2 + %g X^3\n",
-            CN(0), CN(1), CN(2), CN(3));
-    print_stats(cov,chisq);
+        printf ("# best fit: Y = %g + %g X + %g X^2 + %g X^3\n",
+                CN(0), CN(1), CN(2), CN(3));
+        print_stats(cov,chisq);
 #endif
-    gsl_multifit_wlinear (X, wU, yU, cU, cov, &chisq, work);
-    fprintf (fd2,"improved(x)= %g + %g*x + %g*x**2 + %g*x**3\n",
-             CU(0), CU(1), CU(2), CU(3));
+
+
+    //    gsl_multifit_linear_workspace * work = gsl_multifit_linear_alloc (n, 4);
+        gsl_multifit_wlinear (X, wU, yU, cU, cov, &chisq, work);
+    //    gsl_multifit_linear_free (work);
+
+
+        fprintf (fd2,"improved(x)= %g + %g*x + %g*x**2 + %g*x**3\n",
+                 CU(0), CU(1), CU(2), CU(3));
 #ifdef VERBOSE
-    printf ("# best fit: Y = %g + %g X + %g X^2 + %g X^3\n",
-            CU(0), CU(1), CU(2), CU(3));
-    print_stats(cov,chisq);
+        printf ("# best fit: Y = %g + %g X + %g X^2 + %g X^3\n",
+                CU(0), CU(1), CU(2), CU(3));
+        print_stats(cov,chisq);
 #endif
-    gsl_multifit_wlinear (XB, wB, yB, cB, cov, &chisq, work);
-    gsl_multifit_linear_free (work);
-    fprintf (fd2,"blas(x) = %g + %g*x**%g + %g*x**%g + %g*x**%g\n",
-             CB(0), CB(1),COMPL/3, CB(2),COMPL*2/3, CB(3),COMPL);
+
+
+    //    gsl_multifit_linear_workspace * work = gsl_multifit_linear_alloc (n, 4);
+        gsl_multifit_wlinear (XB, wB, yB, cB, cov, &chisq, work);
+        gsl_multifit_linear_free (work);
+
+
+        fprintf (fd2,"blas(x) = %g + %g*x**%g + %g*x**%g + %g*x**%g\n",
+                 CB(0), CB(1),COMPL/3, CB(2),COMPL*2/3, CB(3),COMPL);
 #ifdef VERBOSE
-    printf ("# best fit: Y = %g + %g X^%g + %g X^%g + %g X^%g\n",
-            CB(0), CB(1),COMPL/3, CB(2),COMPL*2/3, CB(3),COMPL);
-    print_stats(cov,chisq);
+        printf ("# best fit: Y = %g + %g X^%g + %g X^%g + %g X^%g\n",
+                CB(0), CB(1),COMPL/3, CB(2),COMPL*2/3, CB(3),COMPL);
+        print_stats(cov,chisq);
 #endif
+
     fprintf(fd2,"plot 'tmp.out' using 1:2 title 'naive' linecolor rgb 'blue'");
     fprintf(fd2,",'tmp.out' using 1:4 title 'improved' linecolor rgb 'green'");
     fprintf(fd2,",'tmp.out' using 1:6 title 'blas' linecolor rgb 'red'");
@@ -209,17 +242,17 @@ int main(int argc, char *argv[]) {
     free(a);
     free(b);
     free(c);
-    gsl_matrix_free (X);
-    gsl_matrix_free (XB);
-    gsl_vector_free (yN);
-    gsl_vector_free (yU);
-    gsl_vector_free (yB);
-    gsl_vector_free (wN);
-    gsl_vector_free (wB);
-    gsl_vector_free (wU);
-    gsl_vector_free (cB);
-    gsl_vector_free (cN);
-    gsl_vector_free (cU);
-    gsl_matrix_free (cov);
+        gsl_matrix_free (X);
+        gsl_matrix_free (XB);
+       gsl_vector_free (yN);
+       gsl_vector_free (yU);
+       gsl_vector_free (yB);
+       gsl_vector_free (wN);
+       gsl_vector_free (wB);
+       gsl_vector_free (wU);
+       gsl_vector_free (cB);
+       gsl_vector_free (cN);
+       gsl_vector_free (cU);
+       gsl_matrix_free (cov);
     return 0;
 }
