@@ -35,7 +35,7 @@ void mulNaive(double a[], double b[], double res[], int width,int height){
 }
 
 void gen(double* m, int width, int height){
-    srand(time(NULL));
+    //srand(time(NULL));
     int i;
     for(i=0;i<width*height;++i){
         m[i]=((double)rand())/(rand()+1);
@@ -67,8 +67,8 @@ int main(int argc, char *argv[]){
     int l;
 
 #define INIT 400
-#define STEP 12
-#define MIN 12
+#define STEP 18
+#define MIN 18
     int WIDTH = INIT;
     int HEIGHT = INIT;
     c=malloc(sizeof(double)*HEIGHT*HEIGHT);
@@ -92,9 +92,10 @@ for(l=0;l<(1+(INIT-MIN)/35);l++){
 }*/
 
     int n =(1+(INIT-MIN)/STEP);
-    gsl_matrix *X, *cov;
+    gsl_matrix *X,*XB, *cov;
     gsl_vector *yN,*yB,*yU, *wN,*wU,*wB, *cU, *cB, *cN;
     X = gsl_matrix_alloc (n, 4);
+    XB = gsl_matrix_alloc (n, 4);
     yN = gsl_vector_alloc (n);
     yU = gsl_vector_alloc (n);
     yB = gsl_vector_alloc (n);
@@ -111,14 +112,21 @@ for(l=0;l<(1+(INIT-MIN)/35);l++){
     cov = gsl_matrix_alloc (4, 4);
 
     FILE* fd = fopen("tmp.out","w");
+    FILE* fd2 = fopen("tmp2.out","w");
     int i=n;
     double xi, yi, ei, chisq;
+    #define COMPL 3.0
     while(WIDTH>MIN){
         i--;
         gsl_matrix_set (X, i, 0, 1.0);
         gsl_matrix_set (X, i, 1, WIDTH);
         gsl_matrix_set (X, i, 2, WIDTH*WIDTH);
         gsl_matrix_set (X, i, 3, WIDTH*WIDTH*WIDTH);
+
+        gsl_matrix_set (XB, i, 0, 1.0);
+        gsl_matrix_set (XB, i, 1, pow(WIDTH,COMPL/3));
+        gsl_matrix_set (XB, i, 2, pow(WIDTH,COMPL*2/3));
+        gsl_matrix_set (XB, i, 3, pow(WIDTH,COMPL));
 
         gsl_matrix_view A = gsl_matrix_view_array(a, HEIGHT, WIDTH);
         gsl_matrix_view B = gsl_matrix_view_array(b, WIDTH, HEIGHT);
@@ -184,6 +192,8 @@ for(l=0;l<(1+(INIT-MIN)/35);l++){
     {
          printf ("# best fit: Y = %g + %g X + %g X^2 + %g X^3\n",
                  CN(0), CN(1), CN(2), CN(3));
+         fprintf (fd2,"naive(x) = %g + %g*x + %g*x**2 + %g*x**3\n",
+                 CN(0), CN(1), CN(2), CN(3));
 
          printf ("# covariance matrix:\n");
          printf ("[ %+.5e, %+.5e, %+.5e, %+.5e  \n",
@@ -204,6 +214,8 @@ for(l=0;l<(1+(INIT-MIN)/35);l++){
     {
          printf ("# best fit: Y = %g + %g X + %g X^2 + %g X^3\n",
                  CU(0), CU(1), CU(2), CU(3));
+         fprintf (fd2,"improved(x)= %g + %g*x + %g*x**2 + %g*x**3\n",
+                 CU(0), CU(1), CU(2), CU(3));
 
          printf ("# covariance matrix:\n");
          printf ("[ %+.5e, %+.5e, %+.5e, %+.5e  \n",
@@ -218,12 +230,15 @@ for(l=0;l<(1+(INIT-MIN)/35);l++){
     }
         {
          gsl_multifit_linear_workspace * work = gsl_multifit_linear_alloc (n, 4);
-         gsl_multifit_wlinear (X, wB, yB, cB, cov, &chisq, work);
+         gsl_multifit_wlinear (XB, wB, yB, cB, cov, &chisq, work);
          gsl_multifit_linear_free (work);
     }
     {
-         printf ("# best fit: Y = %g + %g X + %g X^2 + %g X^3\n",
-                 CB(0), CB(1), CB(2), CB(3));
+         printf ("# best fit: Y = %g + %g X^%g + %g X^%g + %g X^%g\n",
+                 CB(0), CB(1),COMPL/3, CB(2),COMPL*2/3, CB(3),COMPL);
+         fprintf (fd2,"blas(x) = %g + %g*x**%g + %g*x**%g + %g*x**%g\n",
+                 CB(0), CB(1),COMPL/3, CB(2),COMPL*2/3, CB(3),COMPL);
+
 
          printf ("# covariance matrix:\n");
          printf ("[ %+.5e, %+.5e, %+.5e, %+.5e  \n",
@@ -236,5 +251,12 @@ for(l=0;l<(1+(INIT-MIN)/35);l++){
                     COV(3,0), COV(3,1), COV(3,2), COV(3,3));
          printf ("# chisq = %g\n", chisq);
     }
+    fprintf(fd2,"plot 'tmp.out' using 1:2 title 'naive' linecolor rgb 'blue'");
+    fprintf(fd2,",'tmp.out' using 1:4 title 'improved' linecolor rgb 'green'");
+    fprintf(fd2,",'tmp.out' using 1:6 title 'blas' linecolor rgb 'red'");
+    fprintf(fd2,",blas(x) with lines linecolor rgb 'red'");
+    fprintf(fd2,", improved(x) with lines linecolor rgb 'green'");
+    fprintf(fd2,",naive(x) with lines linecolor rgb 'blue'");
+    fprintf(fd2,"\n\npause -1\nset terminal svg\nset output\"output.svg\"\nreplot");
     return 0;
 }
