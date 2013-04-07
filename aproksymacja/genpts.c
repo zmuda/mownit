@@ -100,7 +100,7 @@ int main(int argc, char *argv[]) {
     cB = gsl_vector_alloc (4);
     cov = gsl_matrix_alloc (4, 4);
     FILE* fd = fopen("tmp.out","w");
-    FILE* fd2 = fopen("tmp2.out","w");
+    FILE* fd2 = fopen("plot.p","w");
     int i=n;
     double xi, yi, ei, chisq;
     while(width>MIN) {

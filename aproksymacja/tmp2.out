@@ -1,9 +1,0 @@
-naive(x) = 19.3658 + 0.175797*x + -0.0352116*x**2 + 0.00646145*x**3
-improved(x)= 74.1437 + -5.17457*x + 0.110506*x**2 + 0.00545197*x**3
-blas(x) = 13.2527 + -0.956752*x**1 + 0.0197641*x**2 + 0.000952526*x**3
-plot 'tmp.out' using 1:2 title 'naive' linecolor rgb 'blue','tmp.out' using 1:4 title 'improved' linecolor rgb 'green','tmp.out' using 1:6 title 'blas' linecolor rgb 'red',blas(x) with lines linecolor rgb 'red', improved(x) with lines linecolor rgb 'green',naive(x) with lines linecolor rgb 'blue'
-
-pause -1
-set terminal svg
-set output"output.svg"
-replot
