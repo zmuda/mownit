@@ -1,8 +1,8 @@
 #define TIMES 10
 
-#define INIT 400
-#define STEP 13
-#define MIN 13
+#define INIT 450
+#define STEP 23
+#define MIN 23
 
 #define COMPL 3.0
 
