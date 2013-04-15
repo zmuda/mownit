@@ -4,7 +4,7 @@ double f(double x,void* null){
 }
 //oscylacja
 double g(double x,void* null){
-    return  cos(100*x);
+    return  x * sin(30 * x) * cos(x);
 }
 //osobliwosc
 double h(double x,void* null){
@@ -16,7 +16,7 @@ double k(double x,void* null){
     return  sin(x*2)/x;
 }
 
-const double ERROR = 1e-3;
+//const double ERROR = 1e-5;
 const int POINTS =  30;
 
 

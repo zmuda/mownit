@@ -6,25 +6,23 @@
 #define f(x) f(x,NULL)
 typedef double funkcyjny( double x, void* p);
 
-double trapestry(funkcyjny f,double begin, double end, unsigned probes){
-    //if(probes<2)return -1;
+double trapestry(funkcyjny f,double begin, double end, unsigned probes) {
+    if(probes<2)exit(2);
     double step = (end-begin)/(probes-1);
     double ret=0;
     int i;
     double x=begin;
-    for(i=0;i<probes-1;i++){
+    for(i=0; i<probes-1; i++) {
         ret+=(f(x)+f(x+step))/2*step;
-        //printf("%f %f\n",x,x+step);
         x+=step;
     }
     return ret;
 }
-double trapestryNonfixed(funkcyjny f,double begin, double end, double estimatedError, int* stepsTaken){
+double trapestryNonfixed(funkcyjny f,double begin, double end, double estimatedError, int* stepsTaken) {
     double last = trapestry(f,begin,end,2);
     double res = trapestry(f,begin,end,3);
-    //printf("<%f %f>",last,res);
     int i=3;
-    while(fabs(last-res)>estimatedError){
+    while(fabs(last-res)>estimatedError) {
         last=res;
         res=trapestry(f,begin,end,++i);
     }
@@ -34,6 +32,7 @@ double trapestryNonfixed(funkcyjny f,double begin, double end, double estimatedE
 
 struct timeval stop, start;
 int main(int argc, char *argv[]) {
+    double ERROR=1e-12;
     int steps;
     double res=trapestryNonfixed(f,0,1,ERROR,&steps);
     printf("Dla tolerancji:\t %.36lf\n",ERROR);
@@ -41,11 +40,10 @@ int main(int argc, char *argv[]) {
 
     double times[10];
     int l = 10;
-    while(l--){
+    while(l--) {
         gettimeofday(&start, NULL);
         trapestry(f,0,1,steps);
         gettimeofday(&stop, NULL);
-        //printf("%f\n",(double)(stop.tv_usec-start.tv_usec));
         times[l]=(double)(stop.tv_usec-start.tv_usec);
     }
     printf("średnio %f usec\n",gsl_stats_mean(times,1,10));
@@ -58,17 +56,17 @@ int main(int argc, char *argv[]) {
     printf("gsl(QNG):\t%.36lf\tkroków: %d\n",result,neval);
 
     l=10;
-    while(l--){
+    while(l--) {
         gettimeofday(&start, NULL);
         gsl_integration_qng(&F, 0, 1, ERROR, 0, &result, &error, &neval);
         gettimeofday(&stop, NULL);
-        //printf("%f\n",(double)(stop.tv_usec-start.tv_usec));
         times[l]=(double)(stop.tv_usec-start.tv_usec);
     }
     l=10;
     printf("średnio %f usec\n",gsl_stats_mean(times,1,10));
     printf("wolfram\t\t%f",-2.0);
 
+    ERROR=1e-4;
     printf("\n\t--\t--\t--\t--\n\n");
     //QAG
     F.function = &k;
@@ -79,9 +77,7 @@ int main(int argc, char *argv[]) {
     printf("gsl(QAG):\t%.36lf\tkroków: %d\n",result,POINTS);
     printf("trapestry:\t%.36lf\tkroków: %d\n",trapestry(k,0.01,100,POINTS),POINTS);
     printf("wolfram\t\t%f",1.54838);
-    //printf("error:\t\t%.36lf\n",error);
-    //res=trapestryNonfixed(k,0.01,100,error,&steps);
-    //printf("trapestry:\t%.36lf\tkroków: %d\n",res,steps);
+
     printf("\n\t--\t--\t--\t--\n\n");
     //QAGS
     F.function = &h;
@@ -92,18 +88,18 @@ int main(int argc, char *argv[]) {
     printf("trapestry:\t%.36lf\tkroków: %d\n",trapestry(h,0,1,POINTS),POINTS);
     printf("wolfram\t\t%f",-4.0);
 
-//nie dziala
     printf("\n\t--\t--\t--\t--\n\n");
     //QAWO
     F.function = &g;
     printf("OSCYLACYJNE\n");
-    //gsl_integration_qawo(&F, 0, 1, ERROR, 0, POINTS, w,&result, &error);
-    gsl_integration_qawo_table *table = gsl_integration_qawo_table_alloc(100, 1, GSL_INTEG_COSINE, POINTS);
-    gsl_integration_qawo(&F, 0, ERROR, 0, POINTS, w, table, &result, &error);
+    gsl_integration_qawo_table * wf = gsl_integration_qawo_table_alloc(1,3.14,GSL_INTEG_COSINE,POINTS);
+    gsl_integration_qawo(&F,0.0,ERROR,ERROR,POINTS,w,wf,&result,&error);
     printf("Dla ilosci krokow:\t%d\n",POINTS);
     printf("gsl(QAGS):\t%.36lf\tkroków: %d\n",result,POINTS);
-    printf("trapestry:\t%.36lf\tkroków: %d\n",trapestry(g,0,1,POINTS),POINTS);
-    printf("wolfram\t\t%f",-.00506366);
-//ojojoj
+    printf("trapestry:\t%.36lf\tkroków: %d\n",trapestry(g,0,3.14,POINTS),POINTS);
+    printf("wolfram\t\t%f",-.104717);
+
+    gsl_integration_qawo_table_free(wf);
+    gsl_integration_workspace_free(w);
     return 0;
 }
