@@ -9,7 +9,6 @@
 #define EPS 1e-15
 #define TIMES 1000000
 
-#define BENCH
 
 void pr_time(clock_t real, struct tms *start, struct tms *end)
 {
