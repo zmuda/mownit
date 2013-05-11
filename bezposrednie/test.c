@@ -51,7 +51,6 @@ void display(double* m,int width, int height) {
     printf("\n");
 }
 double* readMM(char* name, int* width, int* height){
-
     FILE *f;
     MM_typecode matcode;
     if ((f = fopen(name, "r")) == NULL)

@@ -1,4 +1,4 @@
-//TEN KOD NIE JEST DO CZYTANIA
+//TEN KOD NIE JEST DO CZYTANIA PRZEZ ISTOTY ROZUMNE
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
