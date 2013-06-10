@@ -1,0 +1,46 @@
+set terminal gif animate delay 10
+set output "animate.gif"
+set xrange[0:7]
+set yrange[0:7]
+set zrange[-1:100]
+splot "tmp/1" with lines
+splot "tmp/2" with lines
+splot "tmp/3" with lines
+splot "tmp/4" with lines
+splot "tmp/5" with lines
+splot "tmp/6" with lines
+splot "tmp/7" with lines
+splot "tmp/8" with lines
+splot "tmp/9" with lines
+splot "tmp/10" with lines
+splot "tmp/11" with lines
+splot "tmp/12" with lines
+splot "tmp/13" with lines
+splot "tmp/14" with lines
+splot "tmp/15" with lines
+splot "tmp/16" with lines
+splot "tmp/17" with lines
+splot "tmp/18" with lines
+splot "tmp/19" with lines
+splot "tmp/20" with lines
+splot "tmp/21" with lines
+splot "tmp/22" with lines
+splot "tmp/23" with lines
+splot "tmp/24" with lines
+splot "tmp/25" with lines
+splot "tmp/26" with lines
+splot "tmp/27" with lines
+splot "tmp/28" with lines
+splot "tmp/29" with lines
+splot "tmp/30" with lines
+splot "tmp/31" with lines
+splot "tmp/32" with lines
+splot "tmp/33" with lines
+splot "tmp/34" with lines
+splot "tmp/35" with lines
+splot "tmp/36" with lines
+splot "tmp/37" with lines
+splot "tmp/38" with lines
+splot "tmp/39" with lines
+splot "tmp/40" with lines
+splot "tmp/41" with lines
